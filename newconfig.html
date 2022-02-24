@@ -205,14 +205,14 @@
                     </el-button>
                 </div>
                 <div slot="right-footer">
-                    <el-button class="transfer-footer" class="op" size="small">保存</el-button>
+                    <el-button class="transfer-footer" class="op" size="small">确定切换</el-button>
                     <el-button v-if="transferToSelected && transferToSelected.length>0" class="transfer-footer" class="op"
-                               size="small" type="warning"
+                               size="small" type="danger"
                                @click="batchConfig">批量配置
                     </el-button>
                     <el-button v-if="transferToSelected && transferToSelected.length>0" class="transfer-footer" class="op"
-                               size="small" type="warning"
-                               @click="batchConfig">改变定时
+                               size="small" type="danger"
+                               @click="batchSchedule">改变定时
                     </el-button>
                 </div>
             </el-transfer>
@@ -237,10 +237,10 @@
 
 
     <el-dialog :visible.sync="op" width="700px;" center>
-        <div class="flex flex-space" style="justify-content: center;min-height: 300px;">
+        <div class="flex flex-space" style="justify-content: center;">
             <!--批量配置编辑-->
-            <div v-if="edits && edits.length>0" class="flex " style="margin-left: 5px;flex-grow: 1;">
-                <div style="border: 1px solid #EBEEF5;border-radius: 4px;flex-grow: 1;">
+            <div v-if="edits && edits.length>0 && rewriteConfig" style="min-height: 300px;width:340px;margin-left: 5px;">
+                <div style="border: 1px solid #EBEEF5;border-radius: 4px;height: 100%;">
                     <div class="card__header" style="width: 100%;flex-grow: 1;">
                         <span v-if="edits.length>1">批量改写配置</span>
                         <span v-if="edits.length==1">
@@ -285,7 +285,7 @@
                 </div>
             </div>
             <!--批量定时配置-->
-            <div v-if="edits && edits.length>0 && this.transferType!='1'" style="margin-left: 5px;width: 340px;flex-shrink:0;">
+            <div v-if="edits && edits.length>0 && this.transferType!='1' && rewriteSchedule" style="margin-left: 5px;width: 340px;flex-shrink:0;">
                 <div style="border: 1px solid #EBEEF5;border-radius: 4px;height: 100%;">
                     <div class="card__header">
                         <span v-if="edits.length>1">批量定时</span>
@@ -391,6 +391,8 @@
                 transferToSelected: [],
                 op: false,
                 edits: [],
+                rewriteConfig:false,
+                rewriteSchedule:false,
 
 
                 timer1: null,
@@ -510,12 +512,23 @@
                     }
                 }
             },
+            batchSchedule() {
+                this.rewriteConfig=false;
+                this.rewriteSchedule=true;
+                this.edits = this.transferToSelected;
+                this.initOpPane(this.transferToSelected[0]);
+                this.op = true;
+            },
             batchConfig() {
+                this.rewriteConfig=true;
+                this.rewriteSchedule=false;
                 this.edits = this.transferToSelected;
                 this.initOpPane(this.transferToSelected[0]);
                 this.op = true;
             },
             edit(lottery) {
+                this.rewriteConfig=true;
+                this.rewriteSchedule=true;
                 this.edits = [lottery.lotteryId];
                 this.initOpPane(lottery.lotteryId);
                 this.op = true;
@@ -541,6 +554,8 @@
                     data=list;
                 }
                 timerCache['data']=data;
+                if(this.rewriteConfig){}
+                if(this.rewriteSchedule){}
                 console.log(this.config,  timerCache);
             },
             removeTimer(index) {
