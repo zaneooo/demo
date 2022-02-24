@@ -154,66 +154,78 @@
                 </div>
             </el-tree>
         </div>
-        <div style="width: 70px;text-align: center;">
-            <el-tag class="easyfilter" @click="transferFromFilter('6hc')">六合彩</el-tag>
-            <el-tag class="easyfilter" type="success" @click="transferFromFilter('ksan')">快三</el-tag>
-            <el-tag class="easyfilter" type="info" @click="transferFromFilter('ssc')">时时彩</el-tag>
-            <el-tag class="easyfilter" type="warning" @click="transferFromFilter('pk10')">PK10</el-tag>
-            <el-tag class="easyfilter" type="danger" @click="transferFromFilter('11x5')">11选5</el-tag>
-            <el-tag class="easyfilter" @click="transferFromFilter('pcdd')">PC蛋蛋</el-tag>
-            <el-tag class="easyfilter" type="success" @click="transferFromFilter('fc3d')">3D/P3</el-tag>
-            <el-tag class="easyfilter" type="info" @click="transferFromFilter('klsf')">快乐十分</el-tag>
-            <el-tag class="easyfilter" type="warning" @click="transferFromFilter('qwc')">趣味彩</el-tag>
-            <el-tag class="easyfilter" type="warning" @click="transferFromFilter('qtcp')">其他彩票</el-tag>
-            <el-tag class="easyfilter" type="danger" @click="transferFromFilter('')">所有</el-tag>
-        </div>
-        <!--  "{key: 'lotteryName',label: 'lotteryId'}"  -->
-        <el-transfer ref="transferarea"
-                     filterable
-                     filter-placeholder="请输入关键词搜索"
-                     target-order="push"
-                     :button-texts="transferButtons"
-                     :titles="transferTitle"
-                     :props="transferProps" v-model="transferToKey"
-                     :data="transferFromData"
-                     :right-default-checked="transferToSelected"
-                     :filter-method="transferFilter"
-                     @change="move"
-                     @right-check-change="lotterySelected"
-        >
-            <div slot-scope="{ option }">
-                <span style="width: 70px;display: inline-block;">{{ option.lotteryName }}</span>
-                <span class="config" v-html="getTimeDesc(option.lotteryId)"></span>
-                <el-button type="text" class="config" style="color: #66b1ff" size="small"
-                           @click="edit(option)">
-                    改配置
-                </el-button>
+
+        <div style="margin-left: 10px;">
+            <el-tabs v-model="transferType">
+                <el-tab-pane label="切换到完全随机" name="1"></el-tab-pane>
+                <el-tab-pane label="切换到部分随机" name="2"></el-tab-pane>
+                <el-tab-pane label="切换到通用部分随机" name="5"></el-tab-pane>
+            </el-tabs>
+            <div class="flex" style="justify-content: center;">
+                <div style="width: 70px;text-align: center;">
+                    <el-tag class="easyfilter" @click="transferFromFilter('6hc')">六合彩</el-tag>
+                    <el-tag class="easyfilter" type="success" @click="transferFromFilter('ksan')">快三</el-tag>
+                    <el-tag class="easyfilter" type="info" @click="transferFromFilter('ssc')">时时彩</el-tag>
+                    <el-tag class="easyfilter" type="warning" @click="transferFromFilter('pk10')">PK10</el-tag>
+                    <el-tag class="easyfilter" type="danger" @click="transferFromFilter('11x5')">11选5</el-tag>
+                    <el-tag class="easyfilter" @click="transferFromFilter('pcdd')">PC蛋蛋</el-tag>
+                    <el-tag class="easyfilter" type="success" @click="transferFromFilter('fc3d')">3D/P3</el-tag>
+                    <el-tag class="easyfilter" type="info" @click="transferFromFilter('klsf')">快乐十分</el-tag>
+                    <el-tag class="easyfilter" type="warning" @click="transferFromFilter('qwc')">趣味彩</el-tag>
+                    <el-tag class="easyfilter" type="warning" @click="transferFromFilter('qtcp')">其他彩票</el-tag>
+                    <el-tag class="easyfilter" type="danger" @click="transferFromFilter('')">所有</el-tag>
+                </div>
+            <!--  "{key: 'lotteryName',label: 'lotteryId'}"  -->
+            <el-transfer ref="transferarea"
+                         filterable
+                         filter-placeholder="请输入关键词搜索"
+                         target-order="unshift"
+                         :button-texts="transferButtons"
+                         :titles="transferTitle"
+                         :props="transferProps" v-model="transferToKey"
+                         :data="transferFromData"
+                         :right-default-checked="transferToSelected"
+                         :filter-method="transferFilter"
+                         @change="move"
+                         @right-check-change="lotterySelected"
+            >
+                <div slot-scope="{ option }">
+                    <span style="width: 70px;display: inline-block;">{{ option.lotteryName }}</span>
+                    <span class="config" v-html="getTimeDesc(option.lotteryId)"></span>
+                    <el-button type="text" class="config" style="color: #66b1ff" size="small"
+                               @click="edit(option)">
+                        改配置
+                    </el-button>
+                </div>
+                <div slot="right-footer">
+                    <el-button class="transfer-footer" class="op" size="small">保存</el-button>
+                    <el-button v-if="transferToSelected && transferToSelected.length>0" class="transfer-footer" class="op"
+                               size="small" type="warning"
+                               @click="batchConfig">批量配置
+                    </el-button>
+                    <el-button v-if="transferToSelected && transferToSelected.length>0" class="transfer-footer" class="op"
+                               size="small" type="warning"
+                               @click="batchConfig">改变定时
+                    </el-button>
+                </div>
+            </el-transfer>
+                <div style="width: 70px;text-align: center;">
+                    <el-tag class="easyfilter" @click="transferToFilter('6hc')">六合彩</el-tag>
+                    <el-tag class="easyfilter" type="success" @click="transferToFilter('ksan')">快三</el-tag>
+                    <el-tag class="easyfilter" type="info" @click="transferToFilter('ssc')">时时彩</el-tag>
+                    <el-tag class="easyfilter" type="warning" @click="transferToFilter('pk10')">PK10</el-tag>
+                    <el-tag class="easyfilter" type="danger" @click="transferToFilter('11x5')">11选5</el-tag>
+                    <el-tag class="easyfilter" @click="transferToFilter('pcdd')">PC蛋蛋</el-tag>
+                    <el-tag class="easyfilter" type="success" @click="transferToFilter('fc3d')">3D/P3</el-tag>
+                    <el-tag class="easyfilter" type="info" @click="transferToFilter('klsf')">快乐十分</el-tag>
+                    <el-tag class="easyfilter" type="warning" @click="transferToFilter('qwc')">趣味彩</el-tag>
+                    <el-tag class="easyfilter" type="warning" @click="transferToFilter('qtcp')">其他彩票</el-tag>
+                    <el-tag class="easyfilter" type="danger" @click="transferToFilter('')">所有</el-tag>
+                </div>
             </div>
-            <div slot="right-footer">
-                <el-button class="transfer-footer" class="op" size="small">保存</el-button>
-                <el-button v-if="transferToSelected && transferToSelected.length>0" class="transfer-footer" class="op"
-                           size="small" type="warning"
-                           @click="batchConfig">批量配置
-                </el-button>
-                <el-button v-if="transferToSelected && transferToSelected.length>0" class="transfer-footer" class="op"
-                           size="small" type="warning"
-                           @click="batchConfig">改变定时
-                </el-button>
-            </div>
-        </el-transfer>
-        <div style="width: 70px;text-align: center;">
-            <el-tag class="easyfilter" @click="transferToFilter('6hc')">六合彩</el-tag>
-            <el-tag class="easyfilter" type="success" @click="transferToFilter('ksan')">快三</el-tag>
-            <el-tag class="easyfilter" type="info" @click="transferToFilter('ssc')">时时彩</el-tag>
-            <el-tag class="easyfilter" type="warning" @click="transferToFilter('pk10')">PK10</el-tag>
-            <el-tag class="easyfilter" type="danger" @click="transferToFilter('11x5')">11选5</el-tag>
-            <el-tag class="easyfilter" @click="transferToFilter('pcdd')">PC蛋蛋</el-tag>
-            <el-tag class="easyfilter" type="success" @click="transferToFilter('fc3d')">3D/P3</el-tag>
-            <el-tag class="easyfilter" type="info" @click="transferToFilter('klsf')">快乐十分</el-tag>
-            <el-tag class="easyfilter" type="warning" @click="transferToFilter('qwc')">趣味彩</el-tag>
-            <el-tag class="easyfilter" type="warning" @click="transferToFilter('qtcp')">其他彩票</el-tag>
-            <el-tag class="easyfilter" type="danger" @click="transferToFilter('')">所有</el-tag>
         </div>
+
+
     </div>
 
 
@@ -266,7 +278,7 @@
                 </div>
             </div>
             <!--批量定时配置-->
-            <div v-if="edits && edits.length>0" style="margin-left: 5px;width: 340px;flex-shrink:0;">
+            <div v-if="edits && edits.length>0 && this.transferType!=1" style="margin-left: 5px;width: 340px;flex-shrink:0;">
                 <div style="border: 1px solid #EBEEF5;border-radius: 4px;height: 100%;">
                     <div class="card__header">
                         <span v-if="edits.length>1">批量定时</span>
@@ -415,24 +427,32 @@
                 this.transferToKey = [];
                 this.$refs.transferarea.$children[3].query = '';
                 this.$refs.transferarea.$children[0].query = '';
-                /*
-                if(type=='1'){
-                    return;
-                }*/
+
                 this.transferType = type;
                 this.transferTitle = ["非当前模式", this.typeInfo[this.transferType] + "模式"];
                 this.transferButtons[1] = "调整为" + this.typeInfo[this.transferType];
                 let lotterysCanToType = this.getLotterysCanToIntf(type);
-                this.transferFromData = lotterysCanToType;
+
 
                 let ids = [];
                 let lotterysNowInType = this.getLotteryOfIntfActived(type);
                 lotterysNowInType.forEach(lottery => {
                     ids.push(lottery.lotteryId);
+                    if(type=='1'){
+                        for (let i = 0; i < lotterysCanToType.length; i++) {
+                            if(lotterysCanToType[i].lotteryId==lottery.lotteryId){
+                                lotterysCanToType[i]['disabled']=true;
+                            }
+                        }
+                    }
                 });
+                this.transferFromData = lotterysCanToType;
                 this.transferToKey = ids;
                 if(selectedId){
                     this.transferToSelected = [selectedId];
+                }
+                if(type=='1'){
+                    this.transferToSelected =[];
                 }
             },
             transferFromFilter(query) {
@@ -1848,6 +1868,9 @@
                 this.getLotteryActivedDescript();
             },
         }, watch: {
+            transferType(val){
+                this.transfer(val);
+            },
             filterText(val) {
                 this.$refs.descript.filter(val);
             }
