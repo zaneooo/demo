@@ -1,0 +1,1859 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <style>
+        .flex {
+            display: -moz-box;
+            display: -ms-flexbox;
+            display: flex;
+        }
+
+        .el-transfer-panel {
+            width: 240px;
+        }
+
+        .el-transfer-panel__body {
+            height: 500px;
+        }
+
+        .el-transfer-panel__list, .el-transfer-panel__list.is-filterable {
+            height: 460px;
+        }
+
+        .el-transfer-panel .el-transfer-panel__footer {
+            text-align: center;
+            height: 21px;
+        }
+
+        .el-checkbox:last-of-type {
+            margin-right: 30px;
+        }
+
+        .el-transfer-panel .el-transfer-panel__header .el-checkbox .el-checkbox__label span {
+            position: initial;
+            right: 15px;
+            color: #909399;
+            font-size: 12px;
+            font-weight: 400;
+        }
+
+        .el-transfer-panel .config, .el-transfer-panel:last-of-type .intfname {
+            display: none;
+        }
+
+        .el-transfer-panel:last-of-type .config, .el-transfer-panel .intfname {
+            display: inline-block;
+        }
+
+        .el-transfer__buttons {
+            display: inline-block;
+            vertical-align: middle;
+            padding: 0 3px;
+        }
+
+        .el-transfer__button {
+            display: block;
+            margin: 0 auto;
+            padding: 10px;
+            border-radius: 50%;
+            color: #fff;
+            background-color: #409eff;
+            font-size: 0;
+        }
+
+        .el-transfer__button.is-disabled, .el-transfer__button.is-disabled:hover {
+            border: 1px solid #dcdfe6;
+            background-color: #f5f7fa;
+            color: #c0c4cc;
+        }
+
+        .el-transfer__button:nth-child(2) {
+            margin: 0;
+        }
+
+        .el-tabs__header {
+            margin: 0 0 0px;
+        }
+
+        .el-transfer-panel__footer .el-button + .el-button {
+            margin-left: initial;
+        }
+
+        .el-transfer-panel__footer .el-button--small, .el-button--small.is-round {
+            padding: 3px 5px;
+        }
+
+        .easyfilter {
+            margin-bottom: 3px;
+        }
+
+        .config .el-tag {
+            margin-right: 5px;
+        }
+        .el-dialog {
+            margin-top:0px !important;
+        }
+
+        .form_input {
+            width: 40px;
+            height: 20px;
+            margin: 4px 0;
+            padding-left: 5px;
+            font-size: 13px;
+            letter-spacing: .15px;
+            border: 0;
+            outline: 0;
+            font-family: 'Montserrat', sans-serif;
+            background-color: #ecf0f3;
+            transition: .25s ease;
+            border-radius: 8px;
+            box-shadow: inset 2px 2px 4px #d1d9e6, inset -2px -2px 4px #f9f9f9;
+        }
+
+        .form_input:focus {
+            box-shadow: inset 4px 4px 4px #d1d9e6, inset -4px -4px 4px #f9f9f9;
+        }
+
+
+        .el-range-editor {
+            margin-top: 5px;
+        }
+
+        .el-range-editor--small.el-input__inner {
+            height: 32px;
+            width: 340px;
+        }
+
+        .el-date-editor--timerange.el-input__inner {
+            width: 180px;
+        }
+
+    </style>
+</head>
+<body>
+<div id="app">
+    <div class="flex" style="justify-content: center;">
+        <div style="width: 140px;max-height: 550px;overflow-y: auto;">
+            <el-input
+                    placeholder="输入关键字进行过滤"
+                    v-model="filterText">
+            </el-input>
+            <el-tree ref="descript" :data="data" :props="defaultProps"
+                     :expand-on-click-node="false" default-expand-all :filter-node-method="filterNode">
+                <div class="custom-tree-node" slot-scope="{ node, data }">
+
+                    <span v-if="data.title">
+                        <span style="color: darkgoldenrod" @click="transfer(data.type)">{{ node.label }}</span></span>
+                        <!--<el-button type="text" size="mini"
+                                   @click="transfer(data.type)">绑定调整</el-button></span>-->
+                    <span v-else>
+                        <span @click="transfer(data.type,data.lotteryId)">{{ node.label }}</span></span>
+                </div>
+            </el-tree>
+        </div>
+        <div style="width: 70px;text-align: center;">
+            <el-tag class="easyfilter" @click="transferFromFilter('6hc')">六合彩</el-tag>
+            <el-tag class="easyfilter" type="success" @click="transferFromFilter('ksan')">快三</el-tag>
+            <el-tag class="easyfilter" type="info" @click="transferFromFilter('ssc')">时时彩</el-tag>
+            <el-tag class="easyfilter" type="warning" @click="transferFromFilter('pk10')">PK10</el-tag>
+            <el-tag class="easyfilter" type="danger" @click="transferFromFilter('11x5')">11选5</el-tag>
+            <el-tag class="easyfilter" @click="transferFromFilter('pcdd')">PC蛋蛋</el-tag>
+            <el-tag class="easyfilter" type="success" @click="transferFromFilter('fc3d')">3D/P3</el-tag>
+            <el-tag class="easyfilter" type="info" @click="transferFromFilter('klsf')">快乐十分</el-tag>
+            <el-tag class="easyfilter" type="warning" @click="transferFromFilter('qwc')">趣味彩</el-tag>
+            <el-tag class="easyfilter" type="warning" @click="transferFromFilter('qtcp')">其他彩票</el-tag>
+            <el-tag class="easyfilter" type="danger" @click="transferFromFilter('')">所有</el-tag>
+        </div>
+        <!--  "{key: 'lotteryName',label: 'lotteryId'}"  -->
+        <el-transfer ref="transferarea"
+                     filterable
+                     filter-placeholder="请输入关键词搜索"
+                     target-order="push"
+                     :button-texts="transferButtons"
+                     :titles="transferTitle"
+                     :props="transferProps" v-model="transferToKey"
+                     :data="transferFromData"
+                     :right-default-checked="transferToSelected"
+                     :filter-method="transferFilter"
+                     @change="move"
+                     @right-check-change="lotterySelected"
+        >
+            <div slot-scope="{ option }">
+                <span style="width: 70px;display: inline-block;">{{ option.lotteryName }}</span>
+                <span class="config" v-html="getTimeDesc(option.lotteryId)"></span>
+                <el-button type="text" class="config" style="color: #66b1ff" size="small"
+                           @click="edit(option)">
+                    改配置
+                </el-button>
+            </div>
+            <div slot="right-footer">
+                <el-button class="transfer-footer" class="op" size="small">保存</el-button>
+                <el-button v-if="transferToSelected && transferToSelected.length>0" class="transfer-footer" class="op"
+                           size="small" type="warning"
+                           @click="batchConfig">批量配置
+                </el-button>
+                <el-button v-if="transferToSelected && transferToSelected.length>0" class="transfer-footer" class="op"
+                           size="small" type="warning"
+                           @click="batchConfig">改变定时
+                </el-button>
+            </div>
+        </el-transfer>
+        <div style="width: 70px;text-align: center;">
+            <el-tag class="easyfilter" @click="transferToFilter('6hc')">六合彩</el-tag>
+            <el-tag class="easyfilter" type="success" @click="transferToFilter('ksan')">快三</el-tag>
+            <el-tag class="easyfilter" type="info" @click="transferToFilter('ssc')">时时彩</el-tag>
+            <el-tag class="easyfilter" type="warning" @click="transferToFilter('pk10')">PK10</el-tag>
+            <el-tag class="easyfilter" type="danger" @click="transferToFilter('11x5')">11选5</el-tag>
+            <el-tag class="easyfilter" @click="transferToFilter('pcdd')">PC蛋蛋</el-tag>
+            <el-tag class="easyfilter" type="success" @click="transferToFilter('fc3d')">3D/P3</el-tag>
+            <el-tag class="easyfilter" type="info" @click="transferToFilter('klsf')">快乐十分</el-tag>
+            <el-tag class="easyfilter" type="warning" @click="transferToFilter('qwc')">趣味彩</el-tag>
+            <el-tag class="easyfilter" type="warning" @click="transferToFilter('qtcp')">其他彩票</el-tag>
+            <el-tag class="easyfilter" type="danger" @click="transferToFilter('')">所有</el-tag>
+        </div>
+    </div>
+
+
+    <el-dialog :visible.sync="op" width="90%" center>
+        <div class="flex flex-space" style="justify-content: center;min-height: 300px;">
+            <!--批量配置编辑-->
+            <div v-if="edits && edits.length>0" class="flex " style="margin-left: 5px;flex-grow: 1;">
+                <div style="border: 1px solid #EBEEF5;border-radius: 4px;flex-grow: 1;">
+                    <div class="card__header" style="width: 100%;flex-grow: 1;">
+                        <span v-if="edits.length>1">批量改写配置</span>
+                        <span v-if="edits.length==1">
+                            <el-tag style="margin-right: 10px;margin-bottom: 10px"
+                                    v-for="id in edits"
+                                    :key="id"
+                                    type="danger">
+                            {{lotteryMap[id].lotteryName}}
+                        </el-tag>配置</span>
+                    </div>
+
+                    <span v-if="this.transferType==5">总支出限制<br/>
+                    最低:总投注金额的<input class="form_input" style="width: 25px" v-model="config.min">倍<br/>
+                    最高:总投注金额的<input class="form_input" style="width: 40px" v-model="config.max">倍<br/>
+                    最大亏损金额<input class="form_input" style="width: 80px" v-model="config.costMax"><br></span>
+                    <span v-if="this.transferType==2">
+                        <span v-if="!this.config.reverseFlag">
+                        特殊玩法<input class="form_input" style="width: 160px" v-model="config.specialPlayIds"><br/>
+                        特殊玩法比率<input class="form_input" style="width: 25px" v-model="config.speMinRate"><br/>
+                        全局比率<input class="form_input" style="width: 25px" v-model="config.norMinRate"><br/>
+                        </span>
+                        <span v-else>
+                        总投注阈值(单期总投注超过此值强制杀大保小)<input class="form_input" style="width: 80px"
+                                                     v-model="config.totalBetThr"><br/>
+                        单注投注阈值(单注投注超过此值强制杀大保小)<input class="form_input" style="width: 80px"
+                                                     v-model="config.oneBetThr"><br/>
+                        最小比率<input class="form_input" style="width: 25px" v-model="config.revMinRate"><br/>
+                        最大比率<input class="form_input" style="width: 25px" v-model="config.revMaxRate"><br/>
+                        特殊玩法<input class="form_input" style="width: 160px" v-model="config.revSpecialPlayIds"><br/>
+                        特殊玩法最小比率<input class="form_input" style="width: 25px" v-model="config.revSpeMinRate"><br/>
+                        特殊玩法最大比率<input class="form_input" style="width: 25px" v-model="config.revSpeMaxRate"><br/>
+                        </span>
+                    </span>
+                    <span v-if="this.transferType==1">
+                        总投注阈值<input class="form_input" style="width: 80px" v-model="config.totalBetThr"><br/>
+                        单注投注阈值<input class="form_input" style="width: 80px" v-model="config.oneBetThr"><br/>
+                        特殊玩法<input class="form_input" style="width: 160px" v-model="config.specialPlayIds"><br/>
+                        特殊玩法比率<input class="form_input" style="width: 25px" v-model="config.speMinRate"><br/>
+                        全局比率<input class="form_input" style="width: 25px" v-model="config.norMinRate"><br/>
+                    </span>
+
+                </div>
+            </div>
+            <!--批量定时配置-->
+            <div v-if="edits && edits.length>0" style="margin-left: 5px;width: 340px;flex-shrink:0;">
+                <div style="border: 1px solid #EBEEF5;border-radius: 4px;height: 100%;">
+                    <div class="card__header">
+                        <span v-if="edits.length>1">批量定时</span>
+                        <span v-if="edits.length==1">
+                            <el-tag style="margin-right: 10px;margin-bottom: 10px"
+                                    v-for="id in edits"
+                                    :key="id"
+                                    type="danger">
+                            {{lotteryMap[id].lotteryName}}
+                        </el-tag>定时</span>
+                    </div>
+                    <div class="flex flex-space" style="justify-content: center;">
+                        <el-tabs v-model="schedule.type">
+                            <el-tab-pane label="永久" name="0"></el-tab-pane>
+                            <el-tab-pane label="限时" name="1"></el-tab-pane>
+                            <el-tab-pane label="每日" name="2"></el-tab-pane>
+                        </el-tabs>
+                    </div>
+                    <div class="text" style="margin-top: 3px;color: #606266;">
+                        <div v-if="schedule.type=='0'" style="text-align: center;">
+                            需要手动切换随机方式才结束
+                        </div>
+                        <div v-if="schedule.type=='1'" style="text-align: center;">
+                            <el-date-picker editable v-model="timeLimit" type="datetimerange"
+                                            size="small"
+                                            value-format='timestamp'
+                                            start-placeholder="开始时间" range-separator="至" end-placeholder="结束时间"
+                                            placeholder="选择时间范围">
+                            </el-date-picker>
+                            <br/>
+                            结束后自动切换为完全随机
+                        </div>
+                        <div v-if="schedule.type=='2'" style="text-align: center;">
+                            <el-button type="success" size="small" @click="addTimer">新增定时</el-button>
+                            <br/>
+                            <template v-for="(schedule,index) in schedule.list">
+                                <el-time-picker :key="index" editable v-model="timerall[index]"
+                                                size="small" is-range format="HH:mm"
+                                                value-format='HH:mm' range-separator="至"
+                                                start-placeholder="开始时间" end-placeholder="结束时间"
+                                                placeholder="选择时间范围">
+                                </el-time-picker>
+                                <el-button type="success" size="small" @click="removeTimer(index)">删除</el-button>
+                                <br/>
+                            </template>
+                            <br/>
+                            非定时时间段，使用完全随机方式
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        以下彩票老配置信息将被覆盖<br/>
+        <div style="display: -moz-box;display: -ms-flexbox;display: flex; flex-wrap: wrap;">
+            <el-tag style="margin-right: 10px;margin-bottom: 10px"
+                    v-for="id in edits"
+                    :key="id"
+                    type="danger">
+                {{lotteryMap[id].lotteryName}}
+            </el-tag>
+        </div>
+        <div style="text-align: center;">
+            <template>
+                <el-popconfirm
+                        confirm-button-text='覆盖'
+                        cancel-button-text='再看看'
+                        icon="el-icon-info"
+                        icon-color="red"
+                        title="确定覆盖老配置？"
+                        @confirm="saveConfig"
+                >
+                    <el-button slot="reference" type="danger" size="small">激活保存配置</el-button>
+                </el-popconfirm>
+            </template>
+        </div>
+        <!--<span slot="footer" class="dialog-footer">
+            <el-button @click="op = false">取 消</el-button>
+            <el-button type="primary" @click="op = false">确 定</el-button>
+        </span>-->
+    </el-dialog>
+</div>
+</body>
+<!-- import Vue before Element -->
+<script src="https://unpkg.com/vue@2.6.14/dist/vue.js"></script>
+<!-- import JavaScript -->
+<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+<script>
+    new Vue({
+        el: '#app',
+        data: function () {
+            return {
+                typeInfo: {'2': '部分随机', '5': '通用部分随机', '1': '完全随机'},
+                transferProps: {
+                    key: 'lotteryId',
+                    label: 'lotteryName'
+                },
+                transferType: 2,
+                transferButtons: ['调整为完全随机', '到右边'],
+                transferTitle: [],
+                transferFromData: [],
+                transferToKey: [],
+                transferToSelected: [],
+                op: false,
+                edits: [],
+
+
+                timer1: null,
+                timer2: null,
+                timer3: null,
+                timer4: null,
+                timer5: null,
+                timer6: null,
+                timer7: null,
+                timer8: null,
+                timer9: null,
+                timer10: null,
+                timerall: [this.timer1, this.timer2, this.timer3, this.timer4, this.timer5, this.timer6, this.timer7, this.timer8, this.timer9, this.timer10,],
+
+                schedule: null,
+                config: null,
+                timeLimit: null,
+
+
+                data: [],
+                defaultProps: {
+                    children: 'children',
+                    label: 'lotteryName'
+                },
+                filterText: '',
+
+                // 彩种id对应的彩票
+                lotteryMap: {},
+                // 彩票对应的 所有彩票配置信息
+                lotteryRelaMap: {},
+                // 方案对应的 所有彩票配置信息
+                intfRelaMap: {},
+                // 模式对应的方案
+                intfMap: {},
+            };
+        }, methods: {
+            transfer(type,selectedId) {
+
+                this.generateData();
+                this.transferToSelected = [];
+                this.transferToKey = [];
+                this.$refs.transferarea.$children[3].query = '';
+                this.$refs.transferarea.$children[0].query = '';
+                if(type=='1'){
+                    return;
+                }
+                this.transferType = type;
+                this.transferTitle = ["非当前模式", this.typeInfo[this.transferType] + "模式"];
+                this.transferButtons[1] = "调整为" + this.typeInfo[this.transferType];
+                let lotterysCanToType = this.getLotterysCanToIntf(type);
+                this.transferFromData = lotterysCanToType;
+
+                let ids = [];
+                let lotterysNowInType = this.getLotteryOfIntfActived(type);
+                lotterysNowInType.forEach(lottery => {
+                    ids.push(lottery.lotteryId);
+                });
+                this.transferToKey = ids;
+                if(selectedId){
+                    this.transferToSelected = [selectedId];
+                }
+            },
+            transferFromFilter(query) {
+                this.$refs.transferarea.$children[0].query = query;
+            },
+            transferToFilter(query) {
+                this.transferToSelected=[];
+                this.$refs.transferarea.$children[3].query = query;
+            },
+            transferFilter(query, item) {
+                if (item && item.lotteryName && item.code) {
+                    return item.lotteryName.toUpperCase().indexOf(query.toUpperCase()) > -1 || item.code.toUpperCase() == query.toUpperCase();
+                }
+            },
+            lotterySelected(nowarr, changed) {
+                this.transferToSelected = nowarr;
+            },
+            move(newFromAreaArr, forward, movedArr) {
+                if (forward == "left") {
+                    this.edits = [];
+                    //this.$refs.transferarea.$children[3].query='';
+                } else {
+                    //this.$refs.transferarea.$children[0].query='';
+                }
+            },
+            initOpPane(lotteryId) {
+                let lotteryRela = this.getRelaOfLotteryOfIntf(lotteryId);
+                this.config = JSON.parse(lotteryRela.controlConfig);
+                if (!this.config) {
+                    this.config = {
+                        betMax: 100000, payPercent: 10, payMax: 100000, costMax: 100000,
+                        min: 0, max: 1
+                    };
+                }
+                this.schedule = {
+                    type: '1',
+                    list: [{"start": "00:00", "end": "23:59"}]
+                };
+                if (this.schedule.type == '1') {
+                    let timestampStart = new Date().getTime();
+                    let timestampEnd = new Date().getTime() + 60 * 60 * 1000;
+                    this.timeLimit = [timestampStart, timestampEnd];
+                }
+                let list = this.schedule.list;
+                if (list) {
+                    for (let i = 0; i < list.length; i++) {
+                        this.timerall[i] = [list[0].start, list[0].end];
+                    }
+                }
+            },
+            batchConfig() {
+                this.edits = this.transferToSelected;
+                this.initOpPane(this.transferToSelected[0]);
+                this.op = true;
+            },
+            edit(lottery) {
+                this.edits = [lottery.lotteryId];
+                this.initOpPane(lottery.lotteryId);
+                this.op = true;
+            },
+
+            saveConfig() {
+                let timerCache = {};
+                let list = [];
+                for (let i = 0; i < this.timerall.length; i++) {
+                    let range = this.timerall[i];
+                    if (range) {
+                        list.push({"start": range[0], "end": range[1]});
+                    }
+                }
+                timerCache['type']=this.schedule.type;
+                timerCache['list']=list;
+                let data =[];
+                if (this.schedule.type == '0') {
+                } else if (this.schedule.type == '1') {
+                    data=[{"start": this.timeLimit[0], "end": this.timeLimit[1]}];
+                } else if (this.schedule.type == '2') {
+                    // 不同时区代表的时间不同。。。
+                    data=list;
+                }
+                timerCache['data']=data;
+                console.log(this.config,  timerCache);
+            },
+            removeTimer(index) {
+                if (index == this.timerall.length - 1) {
+                    this.timerall[index] = null;
+                } else {
+                    for (var i = index; i < this.timerall.length; i++) {
+                        if (this.timerall[i + 1]) {
+                            this.timerall[i] = this.timerall[i + 1];
+                        } else {
+                            this.timerall[i] = null;
+                        }
+                    }
+                }
+                this.schedule.list.splice(0, 1);
+            },
+            addTimer() {
+                if (this.schedule.list.length > 9) {
+                    return;
+                }
+                this.schedule.list.push({"start": "00:00", "end": "23:59"});
+            },
+            handleNodeClick(data) {
+                console.log(data);
+            },
+            filterNode(value, data) {
+                if (!value || !data.lotteryName) return true;
+                let tmp = value.toUpperCase();
+                let contain = false;
+                if(data.code){
+                    contain= data.code.toUpperCase() == tmp;
+                }
+                return contain || data.lotteryName.toUpperCase().indexOf(tmp) !== -1 ;
+            },
+            queryType(data) {
+                this.$refs.descript.filter(data);
+            },
+            getTimeDesc(lotteryId) {
+                let lotteryRela = this.getRelaOfLotteryOfIntf(lotteryId);
+                // 时间控制
+                if (lotteryRela && lotteryRela['controlConfig'] && lotteryRela.controlConfig.timmer) {
+                    if (lotteryRela['controlConfig'].timmer.type == 1) {
+                        return "<span class=\"el-tag el-tag--warning el-tag--light\">剩余60分钟</span>";
+                    }
+                    return "<span class=\"el-tag el-tag--success el-tag--light\">每日固定时间段</span>";
+                }
+                return "<span class=\"el-tag el-tag--info el-tag--light\">每期</span>";
+
+            },
+            getLotterysCanToIntf(type) {
+                let lotterys = [];
+                let relaArr = this.getRelaOfIntf(type);
+                for (let i = 0; i < relaArr.length; i++) {
+                    let rela = relaArr[i];
+                    //console.log(resultIntfId,rela.status,rela.status=='1',rela);
+                    let tmp = this.lotteryMap[rela.lotteryId];
+                    if (tmp) {
+                        //console.log(resultIntfId,tmp.lotteryName,rela,this.lotteryMap)
+                        lotterys.push(tmp);
+                    } else {
+                        //console.log("找不到",rela,this.lotteryMap);
+                    }
+                }
+                return lotterys;
+            },
+            getRelaOfLotteryOfIntf(lotteryId) {
+                let lotteryRelas = this.lotteryRelaMap[lotteryId];
+                let intfDefineArr = this.intfMap[this.transferType];
+                if (lotteryRelas && intfDefineArr) {
+                    for (let i = 0; i < lotteryRelas.length; i++) {
+                        let lotteryRela = lotteryRelas[i];
+                        for (let j = 0; j < intfDefineArr.length; j++) {
+                            let intfDefine = intfDefineArr[j];
+                            if (lotteryRela && intfDefine.resultIntfId == lotteryRela.resultIntfId) {
+                                return lotteryRela;
+                            }
+                        }
+                    }
+                }
+                return null;
+            },
+            getActivedRelaOfLotteryOfIntf(lotteryId) {
+                let lotteryRelas = this.lotteryRelaMap[lotteryId];
+                let intfDefineArr = this.intfMap[this.transferType];
+                if (lotteryRelas && intfDefineArr) {
+                    for (let i = 0; i < lotteryRelas.length; i++) {
+                        let lotteryRela = lotteryRelas[i];
+                        for (let j = 0; j < intfDefineArr.length; j++) {
+                            let intfDefine = intfDefineArr[j];
+                            if (lotteryRela && lotteryRela.status == '1' && intfDefine.resultIntfId == lotteryRela.resultIntfId) {
+                                return lotteryRela;
+                            }
+                        }
+                    }
+                }
+                return null;
+            },
+            getLotteryOfIntfRelaActived(resultIntfId) {
+                let lotterys = [];
+                let relaArr = this.intfRelaMap[resultIntfId];
+                if (relaArr) {
+                    for (let i = 0; i < relaArr.length; i++) {
+                        let rela = relaArr[i];
+                        //console.log(resultIntfId,rela.status,rela.status=='1',rela);
+                        if (rela.status == '1') {
+                            let tmp = this.lotteryMap[rela.lotteryId];
+                            if (tmp) {
+                                //console.log(resultIntfId,tmp.lotteryName,rela,this.lotteryMap)
+                                lotterys.push(tmp);
+                            } else {
+                                //console.log("找不到",rela,this.lotteryMap);
+                            }
+                        }
+                    }
+                }
+                return lotterys;
+            },
+            getRelaOfIntf(type) {
+                let relas = [];
+                let intfArr = this.intfMap[type];
+                for (let i = 0; i < intfArr.length; i++) {
+                    let intfDefine = intfArr[i];
+                    let relaArr = this.intfRelaMap[intfDefine.resultIntfId];
+                    if (relaArr) {
+                        for (let i = 0; i < relaArr.length; i++) {
+                            let rela = relaArr[i];
+                            relas.push(rela);
+                        }
+                    }
+                }
+                return relas;
+            },
+            getLotteryOfIntfActived(type) {
+                let lotterys = [];
+                let intfArr = this.intfMap[type];
+                for (let i = 0; i < intfArr.length; i++) {
+                    let intfDefine = intfArr[i];
+                    let tmp = this.getLotteryOfIntfRelaActived(intfDefine.resultIntfId);
+                    if (tmp && tmp.length > 0) {
+                        lotterys = lotterys.concat(tmp);
+                    }
+                }
+                lotterys.forEach(lo=>{
+                    lo['type']=type;
+                })
+                return lotterys;
+            },
+            getLotteryActivedDescript() {
+                let d = [];
+                let o = {type: '2', title:this.typeInfo['2'],lotteryName: this.typeInfo['2'], children: this.getLotteryOfIntfActived('2')};
+                d.push(o);
+                o = {type: '5', title:this.typeInfo['5'],lotteryName: this.typeInfo['5'], children: this.getLotteryOfIntfActived('5')};
+                d.push(o);
+                o = {type: '1', title:this.typeInfo['1'],lotteryName: this.typeInfo['1'], children: this.getLotteryOfIntfActived('1')};
+                d.push(o);
+                this.data = d;
+            },
+            generateData() {
+                this.lotteryMap = {};
+                this.intfMap = {};
+                this.intfRelaMap = {};
+                const listResponse = {
+                    "code": 0,
+                    "intfs": [{"resultIntfId": 1, "intfControlType": "0"}, {
+                        "resultIntfId": 2,
+                        "intfControlType": "0"
+                    }, {"resultIntfId": 4, "intfControlType": "1"}, {
+                        "resultIntfId": 5,
+                        "intfControlType": "1"
+                    }, {"resultIntfId": 6, "intfControlType": "1"}, {
+                        "resultIntfId": 7,
+                        "intfControlType": "1"
+                    }, {"resultIntfId": 8, "intfControlType": "1"}, {
+                        "resultIntfId": 9,
+                        "intfControlType": "2"
+                    }, {"resultIntfId": 10, "intfControlType": "2"}, {
+                        "resultIntfId": 11,
+                        "intfControlType": "2"
+                    }, {"resultIntfId": 12, "intfControlType": "2"}, {
+                        "resultIntfId": 13,
+                        "intfControlType": "3"
+                    }, {"resultIntfId": 72, "intfControlType": "2"}, {
+                        "resultIntfId": 101,
+                        "intfControlType": "1"
+                    }, {"resultIntfId": 102, "intfControlType": "2"}, {
+                        "resultIntfId": 103,
+                        "intfControlType": "1"
+                    }, {"resultIntfId": 104, "intfControlType": "2"}, {
+                        "resultIntfId": 888,
+                        "intfControlType": "5"
+                    }, {"resultIntfId": 1101, "intfControlType": "1"}, {"resultIntfId": 1102, "intfControlType": "2"}],
+                    "lotteries": [{"code": "ssc", "lotteryName": "三分时时彩", "lotteryId": 11}, {
+                        "code": "pk10",
+                        "lotteryName": "三分PK拾",
+                        "lotteryId": 12
+                    }, {"code": "pcdd", "lotteryName": "幸运28", "lotteryId": 19}, {
+                        "code": "6hc",
+                        "lotteryName": "极速六合彩",
+                        "lotteryId": 20
+                    }, {"code": "ksan", "lotteryName": "分分快三", "lotteryId": 21}, {
+                        "code": "ksan",
+                        "lotteryName": "三分快三",
+                        "lotteryId": 22
+                    }, {"code": "ssc", "lotteryName": "分分时时彩", "lotteryId": 23}, {
+                        "code": "pk10",
+                        "lotteryName": "分分PK拾",
+                        "lotteryId": 24
+                    }, {"code": "ssc", "lotteryName": "五分时时彩", "lotteryId": 40}, {
+                        "code": "pk10",
+                        "lotteryName": "五分PK拾",
+                        "lotteryId": 41
+                    }, {"code": "ksan", "lotteryName": "五分快三", "lotteryId": 42}, {
+                        "code": "6hc",
+                        "lotteryName": "三分六合彩",
+                        "lotteryId": 43
+                    }, {"code": "6hc", "lotteryName": "分分六合彩", "lotteryId": 46}, {
+                        "code": "pk10",
+                        "lotteryName": "三分快艇",
+                        "lotteryId": 47
+                    }, {"code": "pk10", "lotteryName": "分分快艇", "lotteryId": 48}, {
+                        "code": "6hc",
+                        "lotteryName": "天天六合彩",
+                        "lotteryId": 49
+                    }, {"code": "ksan", "lotteryName": "澳门快三", "lotteryId": 50}, {
+                        "code": "pk10",
+                        "lotteryName": "新幸运飞艇",
+                        "lotteryId": 52
+                    }, {"code": "ksan", "lotteryName": "黑龙江快三", "lotteryId": 55}, {
+                        "code": "fc3d",
+                        "lotteryName": "幸运3D",
+                        "lotteryId": 56
+                    }, {"code": "fc3d", "lotteryName": "福运3D", "lotteryId": 57}, {
+                        "code": "fc3d",
+                        "lotteryName": "好运3D",
+                        "lotteryId": 58
+                    }, {"code": "fc3d", "lotteryName": "欢乐3D", "lotteryId": 59}, {
+                        "code": "pk10",
+                        "lotteryName": "北京PK拾",
+                        "lotteryId": 60
+                    }, {"code": "ssc", "lotteryName": "重庆时时彩", "lotteryId": 61}, {
+                        "code": "qtcp",
+                        "lotteryName": "腾讯一分彩",
+                        "lotteryId": 62
+                    }, {"code": "ksan", "lotteryName": "经典快三", "lotteryId": 81}, {
+                        "code": "ksan",
+                        "lotteryName": "曼谷快三",
+                        "lotteryId": 82
+                    }, {"code": "qwc", "lotteryName": "极速颜色彩", "lotteryId": 85}, {
+                        "code": "qwc",
+                        "lotteryName": "三分颜色彩",
+                        "lotteryId": 86
+                    }, {"code": "qwc", "lotteryName": "五分颜色彩", "lotteryId": 87}, {
+                        "code": "pk10",
+                        "lotteryName": "天天PK拾",
+                        "lotteryId": 88
+                    }],
+                    "relas": [{
+                        "controlConfig": null,
+                        "resultIntfId": 1,
+                        "status": "1",
+                        "lotteryId": 1
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 1,
+                        "status": "1",
+                        "lotteryId": 4
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 1,
+                        "status": "1",
+                        "lotteryId": 5
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 1,
+                        "status": "1",
+                        "lotteryId": 6
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 1,
+                        "status": "1",
+                        "lotteryId": 9
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 1,
+                        "status": "1",
+                        "lotteryId": 10
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 1,
+                        "status": "1",
+                        "lotteryId": 13
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 1,
+                        "status": "1",
+                        "lotteryId": 14
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 1,
+                        "status": "1",
+                        "lotteryId": 15
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 1,
+                        "status": "1",
+                        "lotteryId": 16
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 1,
+                        "status": "1",
+                        "lotteryId": 18
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 1,
+                        "status": "1",
+                        "lotteryId": 7
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 1,
+                        "status": "1",
+                        "lotteryId": 8
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 1,
+                        "status": "1",
+                        "lotteryId": 3
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 1,
+                        "status": "1",
+                        "lotteryId": 17
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 1,
+                        "status": "1",
+                        "lotteryId": 2
+                    }, {
+                        "controlConfig": "{\"norMinRate\":1.0,\"oneBetThr\":200000.0,\"speMinRate\":1.0,\"specialPlayIds\":\"\",\"totalBetThr\":2000000.0}",
+                        "resultIntfId": 5,
+                        "status": "1",
+                        "lotteryId": 11
+                    }, {
+                        "controlConfig": "{\"norMinRate\":1.0,\"oneBetThr\":200000.0,\"speMinRate\":1.0,\"specialPlayIds\":\"\",\"totalBetThr\":2000000.0}",
+                        "resultIntfId": 4,
+                        "status": "1",
+                        "lotteryId": 12
+                    }, {
+                        "controlConfig": "{\"norMinRate\":1.0,\"oneBetThr\":5000.0,\"speMinRate\":1.0,\"specialPlayIds\":\"\",\"totalBetThr\":20000.0}",
+                        "resultIntfId": 6,
+                        "status": "1",
+                        "lotteryId": 19
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 3,
+                        "status": "0",
+                        "lotteryId": 1
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 3,
+                        "status": "0",
+                        "lotteryId": 3
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 3,
+                        "status": "0",
+                        "lotteryId": 4
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 3,
+                        "status": "0",
+                        "lotteryId": 5
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 3,
+                        "status": "0",
+                        "lotteryId": 6
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 3,
+                        "status": "0",
+                        "lotteryId": 7
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 3,
+                        "status": "0",
+                        "lotteryId": 8
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 3,
+                        "status": "0",
+                        "lotteryId": 9
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 3,
+                        "status": "0",
+                        "lotteryId": 10
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 3,
+                        "status": "0",
+                        "lotteryId": 13
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 3,
+                        "status": "0",
+                        "lotteryId": 14
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 3,
+                        "status": "0",
+                        "lotteryId": 15
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 3,
+                        "status": "0",
+                        "lotteryId": 16
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 3,
+                        "status": "0",
+                        "lotteryId": 17
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 3,
+                        "status": "0",
+                        "lotteryId": 18
+                    }, {
+                        "controlConfig": "{\"norMinRate\":1.0,\"oneBetThr\":200000.0,\"speMinRate\":1.0,\"specialPlayIds\":\"\",\"totalBetThr\":2000000.0}",
+                        "resultIntfId": 7,
+                        "status": "1",
+                        "lotteryId": 20
+                    }, {
+                        "controlConfig": "{\"norMinRate\":1.0,\"oneBetThr\":20000.0,\"speMinRate\":1.0,\"specialPlayIds\":\"\",\"totalBetThr\":2000000.0}",
+                        "resultIntfId": 8,
+                        "status": "1",
+                        "lotteryId": 21
+                    }, {
+                        "controlConfig": "{\"norMinRate\":1.0,\"oneBetThr\":200000.0,\"speMinRate\":1.0,\"specialPlayIds\":\"\",\"totalBetThr\":2000000.0}",
+                        "resultIntfId": 8,
+                        "status": "1",
+                        "lotteryId": 22
+                    }, {
+                        "controlConfig": "{\"norMinRate\":1.0,\"oneBetThr\":200000.0,\"speMinRate\":1.0,\"specialPlayIds\":\"1\",\"totalBetThr\":2000000.0}",
+                        "resultIntfId": 5,
+                        "status": "1",
+                        "lotteryId": 23
+                    }, {
+                        "controlConfig": "{\"norMinRate\":1.0,\"oneBetThr\":200000.0,\"speMinRate\":1.0,\"specialPlayIds\":\"\",\"totalBetThr\":2000000.0}",
+                        "resultIntfId": 4,
+                        "status": "1",
+                        "lotteryId": 24
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 1,
+                        "status": "1",
+                        "lotteryId": 25
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 1,
+                        "status": "1",
+                        "lotteryId": 26
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 1,
+                        "status": "1",
+                        "lotteryId": 27
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 1,
+                        "status": "1",
+                        "lotteryId": 28
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 1,
+                        "status": "1",
+                        "lotteryId": 29
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 1,
+                        "status": "1",
+                        "lotteryId": 30
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 1,
+                        "status": "1",
+                        "lotteryId": 31
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 1,
+                        "status": "1",
+                        "lotteryId": 32
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 1,
+                        "status": "1",
+                        "lotteryId": 33
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 1,
+                        "status": "1",
+                        "lotteryId": 34
+                    }, {
+                        "controlConfig": "{\"norMinRate\":3.0,\"oneBetThr\":200000.0,\"revMaxRate\":8.0,\"revMinRate\":0.0,\"revSpeMaxRate\":0.0,\"revSpeMinRate\":0.0,\"revSpecialPlayIds\":\"\",\"reverseFlag\":false,\"speMinRate\":0.0,\"specialPlayIds\":\"\",\"totalBetThr\":200000.0}",
+                        "resultIntfId": 72,
+                        "status": "0",
+                        "lotteryId": 20
+                    }, {
+                        "controlConfig": "{\"norMinRate\":2.0,\"oneBetThr\":200000.0,\"revMaxRate\":8.0,\"revMinRate\":0.0,\"revSpeMaxRate\":0.0,\"revSpeMinRate\":0.0,\"revSpecialPlayIds\":\"\",\"reverseFlag\":false,\"speMinRate\":10.0,\"specialPlayIds\":\"2060102,2010102\",\"totalBetThr\":200000.0}",
+                        "resultIntfId": 9,
+                        "status": "0",
+                        "lotteryId": 21
+                    }, {
+                        "controlConfig": "{\"norMinRate\":2.0,\"oneBetThr\":200000.0,\"revMaxRate\":8.0,\"revMinRate\":0.0,\"revSpeMaxRate\":0.0,\"revSpeMinRate\":0.0,\"revSpecialPlayIds\":\"\",\"reverseFlag\":false,\"speMinRate\":10.0,\"specialPlayIds\":\"2060102\",\"totalBetThr\":200000.0}",
+                        "resultIntfId": 9,
+                        "status": "0",
+                        "lotteryId": 22
+                    }, {
+                        "controlConfig": "{\"norMinRate\":2.0,\"oneBetThr\":200.0,\"revMaxRate\":9.0,\"revMinRate\":3.0,\"revSpeMaxRate\":0.0,\"revSpeMinRate\":0.0,\"revSpecialPlayIds\":\"\",\"reverseFlag\":false,\"speMinRate\":4.0,\"specialPlayIds\":\"4100201,4100101,4040202,4060202,4100204,4100203,4100103,4070401,4070301,4070201,4070101,4070101,4060202,4060201,4060101,4050202,4050201,4050101,4040202,4040201,4040101,4010101,4010102,4010103,4010201,4010202,4020101,4020102,4020103,4160101,4160201,4160301,4100302,4100202,4100102,4070402,\",\"totalBetThr\":3000.0}",
+                        "resultIntfId": 10,
+                        "status": "0",
+                        "lotteryId": 23
+                    }, {
+                        "controlConfig": "{\"norMinRate\":6.0,\"oneBetThr\":200000.0,\"revMaxRate\":8.0,\"revMinRate\":0.0,\"revSpeMaxRate\":0.0,\"revSpeMinRate\":0.0,\"revSpecialPlayIds\":\"\",\"reverseFlag\":false,\"speMinRate\":8.0,\"specialPlayIds\":\"4040201,4050201,4060201,4100203,4040202,4050202,4060202,4100204,4080101\",\"totalBetThr\":200000.0}",
+                        "resultIntfId": 10,
+                        "status": "0",
+                        "lotteryId": 11
+                    }, {
+                        "controlConfig": "{\"norMinRate\":2.0,\"oneBetThr\":200000.0,\"revMaxRate\":8.0,\"revMinRate\":0.0,\"revSpeMaxRate\":0.0,\"revSpeMinRate\":0.0,\"revSpecialPlayIds\":\"\",\"reverseFlag\":false,\"speMinRate\":5.0,\"specialPlayIds\":\"5040101,5040102,5040103\",\"totalBetThr\":200000.0}",
+                        "resultIntfId": 11,
+                        "status": "0",
+                        "lotteryId": 24
+                    }, {
+                        "controlConfig": "{\"norMinRate\":2.0,\"oneBetThr\":200000.0,\"revMaxRate\":8.0,\"revMinRate\":0.0,\"revSpeMaxRate\":0.0,\"revSpeMinRate\":0.0,\"revSpecialPlayIds\":\"\",\"reverseFlag\":false,\"speMinRate\":5.0,\"specialPlayIds\":\"5040101,5040102,5040103\",\"totalBetThr\":200000.0}",
+                        "resultIntfId": 11,
+                        "status": "0",
+                        "lotteryId": 12
+                    }, {
+                        "controlConfig": "{\"norMinRate\":10.0,\"oneBetThr\":200000.0,\"revMaxRate\":8.0,\"revMinRate\":0.0,\"revSpeMaxRate\":0.0,\"revSpeMinRate\":0.0,\"revSpecialPlayIds\":\"\",\"reverseFlag\":false,\"speMinRate\":0.0,\"specialPlayIds\":\"\",\"totalBetThr\":200000.0}",
+                        "resultIntfId": 12,
+                        "status": "0",
+                        "lotteryId": 19
+                    }, {
+                        "controlConfig": "{\"norMinRate\":1.0,\"oneBetThr\":200000.0,\"speMinRate\":1.0,\"specialPlayIds\":\"\",\"totalBetThr\":2000000.0}",
+                        "resultIntfId": 8,
+                        "status": "1",
+                        "lotteryId": 42
+                    }, {
+                        "controlConfig": "{\"norMinRate\":1.0,\"oneBetThr\":200000.0,\"speMinRate\":1.0,\"specialPlayIds\":\"\",\"totalBetThr\":2000000.0}",
+                        "resultIntfId": 4,
+                        "status": "1",
+                        "lotteryId": 41
+                    }, {
+                        "controlConfig": "{\"norMinRate\":1.0,\"oneBetThr\":200000.0,\"speMinRate\":1.0,\"specialPlayIds\":\"\",\"totalBetThr\":2000000.0}",
+                        "resultIntfId": 5,
+                        "status": "1",
+                        "lotteryId": 40
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 1,
+                        "status": "1",
+                        "lotteryId": 35
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 1,
+                        "status": "1",
+                        "lotteryId": 44
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 1,
+                        "status": "1",
+                        "lotteryId": 45
+                    }, {
+                        "controlConfig": "{\"norMinRate\":10.0,\"oneBetThr\":200000.0,\"revMaxRate\":8.0,\"revMinRate\":0.0,\"revSpeMaxRate\":0.0,\"revSpeMinRate\":0.0,\"revSpecialPlayIds\":\"\",\"reverseFlag\":false,\"speMinRate\":10.0,\"specialPlayIds\":\"4040201,4050201,4060201,4100203,4040202,4050202,4060202,4100204,4080101\",\"totalBetThr\":200000.0}",
+                        "resultIntfId": 10,
+                        "status": "0",
+                        "lotteryId": 40
+                    }, {
+                        "controlConfig": "{\"norMinRate\":2.0,\"oneBetThr\":20000.0,\"revMaxRate\":2.0,\"revMinRate\":0.0,\"revSpeMaxRate\":0.0,\"revSpeMinRate\":0.0,\"revSpecialPlayIds\":\"\",\"reverseFlag\":false,\"speMinRate\":10.0,\"specialPlayIds\":\"2060102\",\"totalBetThr\":20000.0}",
+                        "resultIntfId": 9,
+                        "status": "0",
+                        "lotteryId": 42
+                    }, {
+                        "controlConfig": "{\"norMinRate\":2.0,\"oneBetThr\":200000.0,\"revMaxRate\":8.0,\"revMinRate\":0.0,\"revSpeMaxRate\":0.0,\"revSpeMinRate\":0.0,\"revSpecialPlayIds\":\"\",\"reverseFlag\":false,\"speMinRate\":5.0,\"specialPlayIds\":\"5040101,5040102,5040103\",\"totalBetThr\":200000.0}",
+                        "resultIntfId": 11,
+                        "status": "0",
+                        "lotteryId": 41
+                    }, {
+                        "controlConfig": "{\"norMinRate\":2.0,\"oneBetThr\":200000.0,\"speMinRate\":1.0,\"specialPlayIds\":\"\",\"totalBetThr\":2000000.0}",
+                        "resultIntfId": 4,
+                        "status": "1",
+                        "lotteryId": 47
+                    }, {
+                        "controlConfig": "{\"norMinRate\":3.0,\"oneBetThr\":200000.0,\"revMaxRate\":8.0,\"revMinRate\":0.0,\"revSpeMaxRate\":0.0,\"revSpeMinRate\":0.0,\"revSpecialPlayIds\":\"\",\"reverseFlag\":false,\"speMinRate\":10.0,\"specialPlayIds\":\"5040101,5040102,5040103\",\"totalBetThr\":200000.0}",
+                        "resultIntfId": 11,
+                        "status": "0",
+                        "lotteryId": 47
+                    }, {
+                        "controlConfig": "{\"norMinRate\":1.0,\"oneBetThr\":200000.0,\"speMinRate\":1.0,\"specialPlayIds\":\"\",\"totalBetThr\":2000000.0}",
+                        "resultIntfId": 4,
+                        "status": "1",
+                        "lotteryId": 48
+                    }, {
+                        "controlConfig": "{\"norMinRate\":2.0,\"oneBetThr\":200000.0,\"revMaxRate\":8.0,\"revMinRate\":0.0,\"revSpeMaxRate\":0.0,\"revSpeMinRate\":0.0,\"revSpecialPlayIds\":\"\",\"reverseFlag\":false,\"speMinRate\":5.0,\"specialPlayIds\":\"5040101,5040102,5040103\",\"totalBetThr\":200000.0}",
+                        "resultIntfId": 11,
+                        "status": "0",
+                        "lotteryId": 48
+                    }, {
+                        "controlConfig": "{\"norMinRate\":1.0,\"oneBetThr\":200000.0,\"speMinRate\":1.0,\"specialPlayIds\":\"\",\"totalBetThr\":2000000.0}",
+                        "resultIntfId": 7,
+                        "status": "1",
+                        "lotteryId": 43
+                    }, {
+                        "controlConfig": "{\"norMinRate\":3.0,\"oneBetThr\":200000.0,\"revMaxRate\":8.0,\"revMinRate\":0.0,\"revSpeMaxRate\":0.0,\"revSpeMinRate\":0.0,\"revSpecialPlayIds\":\"\",\"reverseFlag\":false,\"speMinRate\":0.0,\"specialPlayIds\":\"\",\"totalBetThr\":200000.0}",
+                        "resultIntfId": 72,
+                        "status": "0",
+                        "lotteryId": 43
+                    }, {
+                        "controlConfig": "{\"norMinRate\":1.0,\"oneBetThr\":200000.0,\"speMinRate\":1.0,\"specialPlayIds\":\"\",\"totalBetThr\":2000000.0}",
+                        "resultIntfId": 8,
+                        "status": "1",
+                        "lotteryId": 81
+                    }, {
+                        "controlConfig": "{\"norMinRate\":1.0,\"oneBetThr\":200000.0,\"speMinRate\":1.0,\"specialPlayIds\":\"\",\"totalBetThr\":2000000.0}",
+                        "resultIntfId": 8,
+                        "status": "1",
+                        "lotteryId": 82
+                    }, {
+                        "controlConfig": "{\"acceptMaxPrize\":3000.0,\"filterPlay\":\"\",\"prizeRate\":0.95}",
+                        "resultIntfId": 13,
+                        "status": "0",
+                        "lotteryId": 21
+                    }, {
+                        "controlConfig": "{\"acceptMaxPrize\":1000.0,\"filterPlay\":\"\",\"prizeRate\":0.95}",
+                        "resultIntfId": 13,
+                        "status": "0",
+                        "lotteryId": 22
+                    }, {
+                        "controlConfig": "{\"prizeRate\": 0.95, \"filterPlay\": \"\", \"acceptMaxPrize\": 6000}",
+                        "resultIntfId": 13,
+                        "status": "0",
+                        "lotteryId": 42
+                    }, {
+                        "controlConfig": "{\"acceptMaxPrize\":3000.0,\"filterPlay\":\"\",\"prizeRate\":0.95}",
+                        "resultIntfId": 13,
+                        "status": "0",
+                        "lotteryId": 81
+                    }, {
+                        "controlConfig": "{\"acceptMaxPrize\":3000.0,\"filterPlay\":\"\",\"prizeRate\":0.95}",
+                        "resultIntfId": 13,
+                        "status": "0",
+                        "lotteryId": 82
+                    }, {
+                        "controlConfig": "{\"norMinRate\":2.0,\"oneBetThr\":200000.0,\"revMaxRate\":8.0,\"revMinRate\":0.0,\"revSpeMaxRate\":0.0,\"revSpeMinRate\":0.0,\"revSpecialPlayIds\":\"\",\"reverseFlag\":false,\"speMinRate\":10.0,\"specialPlayIds\":\"2060102\",\"totalBetThr\":200000.0}",
+                        "resultIntfId": 9,
+                        "status": "0",
+                        "lotteryId": 81
+                    }, {
+                        "controlConfig": "{\"norMinRate\":2.0,\"oneBetThr\":200000.0,\"revMaxRate\":8.0,\"revMinRate\":0.0,\"revSpeMaxRate\":0.0,\"revSpeMinRate\":0.0,\"revSpecialPlayIds\":\"\",\"reverseFlag\":false,\"speMinRate\":10.0,\"specialPlayIds\":\"2060102\",\"totalBetThr\":200000.0}",
+                        "resultIntfId": 9,
+                        "status": "0",
+                        "lotteryId": 82
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 14,
+                        "status": "",
+                        "lotteryId": 56
+                    }, {
+                        "controlConfig": "{\"norMinRate\":3.0,\"oneBetThr\":200000.0,\"speMinRate\":1.0,\"specialPlayIds\":\"\",\"totalBetThr\":2000000.0}",
+                        "resultIntfId": 101,
+                        "status": "1",
+                        "lotteryId": 56
+                    }, {
+                        "controlConfig": "{\"norMinRate\":3.0,\"oneBetThr\":200000.0,\"revMaxRate\":8.0,\"revMinRate\":0.0,\"revSpeMaxRate\":0.0,\"revSpeMinRate\":0.0,\"revSpecialPlayIds\":\"\",\"reverseFlag\":false,\"speMinRate\":3.0,\"specialPlayIds\":\"1030101\",\"totalBetThr\":200000.0}",
+                        "resultIntfId": 102,
+                        "status": "0",
+                        "lotteryId": 56
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 14,
+                        "status": "1",
+                        "lotteryId": 57
+                    }, {
+                        "controlConfig": "{\"norMinRate\":3.0,\"oneBetThr\":200000.0,\"speMinRate\":1.0,\"specialPlayIds\":\"\",\"totalBetThr\":2000000.0}",
+                        "resultIntfId": 101,
+                        "status": "1",
+                        "lotteryId": 57
+                    }, {
+                        "controlConfig": "{\"norMinRate\":3.0,\"oneBetThr\":200000.0,\"revMaxRate\":8.0,\"revMinRate\":0.0,\"revSpeMaxRate\":0.0,\"revSpeMinRate\":0.0,\"revSpecialPlayIds\":\"\",\"reverseFlag\":false,\"speMinRate\":4.0,\"specialPlayIds\":\"\",\"totalBetThr\":200000.0}",
+                        "resultIntfId": 102,
+                        "status": "0",
+                        "lotteryId": 57
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 14,
+                        "status": "1",
+                        "lotteryId": 58
+                    }, {
+                        "controlConfig": "{\"oneBetThr\": 200000, \"norMinRate\": 3.0, \"speMinRate\": 1, \"totalBetThr\": 2000000, \"specialPlayIds\": \"\"}",
+                        "resultIntfId": 101,
+                        "status": "1",
+                        "lotteryId": 58
+                    }, {
+                        "controlConfig": "{\"oneBetThr\": 200000, \"norMinRate\": 3.0, \"revMaxRate\": 8, \"revMinRate\": 0, \"speMinRate\": 3, \"reverseFlag\": false, \"totalBetThr\": 200000, \"revSpeMaxRate\": 0, \"revSpeMinRate\": 0, \"specialPlayIds\": \"1030101\", \"revSpecialPlayIds\": \"\"}",
+                        "resultIntfId": 102,
+                        "status": "0",
+                        "lotteryId": 58
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 14,
+                        "status": "1",
+                        "lotteryId": 59
+                    }, {
+                        "controlConfig": "{\"norMinRate\":3.0,\"oneBetThr\":200000.0,\"speMinRate\":1.0,\"specialPlayIds\":\"\",\"totalBetThr\":2000000.0}",
+                        "resultIntfId": 101,
+                        "status": "1",
+                        "lotteryId": 59
+                    }, {
+                        "controlConfig": "{\"norMinRate\":3.0,\"oneBetThr\":200000.0,\"revMaxRate\":8.0,\"revMinRate\":0.0,\"revSpeMaxRate\":0.0,\"revSpeMinRate\":0.0,\"revSpecialPlayIds\":\"\",\"reverseFlag\":false,\"speMinRate\":20.0,\"specialPlayIds\":\"40608,20408,10305,50709\",\"totalBetThr\":200000.0}",
+                        "resultIntfId": 102,
+                        "status": "0",
+                        "lotteryId": 59
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 14,
+                        "status": "1",
+                        "lotteryId": 62
+                    }, {
+                        "controlConfig": "{\"norMinRate\":3.0,\"oneBetThr\":200000.0,\"speMinRate\":1.0,\"specialPlayIds\":\"\",\"totalBetThr\":2000000.0}",
+                        "resultIntfId": 103,
+                        "status": "1",
+                        "lotteryId": 62
+                    }, {
+                        "controlConfig": "{\"norMinRate\":3.0,\"oneBetThr\":200000.0,\"revMaxRate\":8.0,\"revMinRate\":0.0,\"revSpeMaxRate\":0.0,\"revSpeMinRate\":0.0,\"revSpecialPlayIds\":\"\",\"reverseFlag\":false,\"speMinRate\":20.0,\"specialPlayIds\":\"40608,20408,10305,50709\",\"totalBetThr\":200000.0}",
+                        "resultIntfId": 104,
+                        "status": "0",
+                        "lotteryId": 62
+                    }, {
+                        "controlConfig": "{\"esConfig\": {\"prizeRate\": 0.9, \"floatPrizeRate\": 0.02}, \"configClass\": \"com.alpha.lot.task.modules.openresult.v2.randomball.LotterySscResult\"}",
+                        "resultIntfId": 801,
+                        "status": "0",
+                        "lotteryId": 11
+                    }, {
+                        "controlConfig": "{\"esConfig\": {\"prizeRate\": 0.9, \"floatPrizeRate\": 0.02}, \"configClass\": \"com.alpha.lot.task.modules.openresult.v2.randomball.LotteryPk10Result\"}",
+                        "resultIntfId": 801,
+                        "status": "0",
+                        "lotteryId": 12
+                    }, {
+                        "controlConfig": "{\"esConfig\": {\"prizeRate\": 0.9, \"floatPrizeRate\": 0.02}, \"configClass\": \"com.alpha.lot.task.modules.openresult.v2.randomball.LotteryWan28Result\"}",
+                        "resultIntfId": 801,
+                        "status": "0",
+                        "lotteryId": 19
+                    }, {
+                        "controlConfig": "{\"esConfig\": {\"resultFilterType\":\"2\",\"prizeRate\": \"1\", \"floatPrizeRate\": \"1\",\"belowBuyMoney\":\"0.9\"}, \"configClass\": \"com.alpha.lot.task.modules.openresult.v2.randomball.LotteryK3Result\"}",
+                        "resultIntfId": 801,
+                        "status": "0",
+                        "lotteryId": 21
+                    }, {
+                        "controlConfig": "{\"esConfig\": {\"prizeRate\": 0.9, \"floatPrizeRate\": 0.02}, \"configClass\": \"com.alpha.lot.task.modules.openresult.v2.randomball.LotteryK3Result\"}",
+                        "resultIntfId": 801,
+                        "status": "0",
+                        "lotteryId": 22
+                    }, {
+                        "controlConfig": "{\"esConfig\": {\"prizeRate\": 0.9, \"floatPrizeRate\": 0.02}, \"configClass\": \"com.alpha.lot.task.modules.openresult.v2.randomball.LotterySscResult\"}",
+                        "resultIntfId": 801,
+                        "status": "0",
+                        "lotteryId": 23
+                    }, {
+                        "controlConfig": "{\"esConfig\": {\"prizeRate\": 0.9, \"floatPrizeRate\": 0.02}, \"configClass\": \"com.alpha.lot.task.modules.openresult.v2.randomball.LotteryPk10Result\"}",
+                        "resultIntfId": 801,
+                        "status": "0",
+                        "lotteryId": 24
+                    }, {
+                        "controlConfig": "{\"esConfig\": {\"prizeRate\": 0.9, \"floatPrizeRate\": 0.02}, \"configClass\": \"com.alpha.lot.task.modules.openresult.v2.randomball.LotterySscResult\"}",
+                        "resultIntfId": 801,
+                        "status": "0",
+                        "lotteryId": 40
+                    }, {
+                        "controlConfig": "{\"esConfig\": {\"prizeRate\": 0.9, \"floatPrizeRate\": 0.02}, \"configClass\": \"com.alpha.lot.task.modules.openresult.v2.randomball.LotteryPk10Result\"}",
+                        "resultIntfId": 801,
+                        "status": "0",
+                        "lotteryId": 41
+                    }, {
+                        "controlConfig": "{\"esConfig\": {\"resultFilterType\":\"2\",\"prizeRate\": \"1\", \"floatPrizeRate\": \"1\",\"belowBuyMoney\":\"0.9\"}, \"configClass\": \"com.alpha.lot.task.modules.openresult.v2.randomball.LotteryK3Result\"}",
+                        "resultIntfId": 801,
+                        "status": "0",
+                        "lotteryId": 42
+                    }, {
+                        "controlConfig": "{\"esConfig\": {\"prizeRate\": 0.9, \"floatPrizeRate\": 0.02}, \"configClass\": \"com.alpha.lot.task.modules.openresult.v2.randomball.LotteryPk10Result\"}",
+                        "resultIntfId": 801,
+                        "status": "0",
+                        "lotteryId": 47
+                    }, {
+                        "controlConfig": "{\"esConfig\": {\"prizeRate\": 0.9, \"floatPrizeRate\": 0.02}, \"configClass\": \"com.alpha.lot.task.modules.openresult.v2.randomball.LotteryPk10Result\"}",
+                        "resultIntfId": 801,
+                        "status": "0",
+                        "lotteryId": 48
+                    }, {
+                        "controlConfig": "{\"esConfig\": {\"prizeRate\": 0.9, \"floatPrizeRate\": 0.02}, \"configClass\": \"com.alpha.lot.task.modules.openresult.v2.randomball.LotteryK3Result\"}",
+                        "resultIntfId": 801,
+                        "status": "0",
+                        "lotteryId": 50
+                    }, {
+                        "controlConfig": "{\"esConfig\": {\"prizeRate\": 0.9, \"floatPrizeRate\": 0.02}, \"configClass\": \"com.alpha.lot.task.modules.openresult.v2.randomball.LotteryPk10Result\"}",
+                        "resultIntfId": 801,
+                        "status": "1",
+                        "lotteryId": 52
+                    }, {
+                        "controlConfig": "{\"esConfig\": {\"prizeRate\": 0.9, \"floatPrizeRate\": 0.02}, \"configClass\": \"com.alpha.lot.task.modules.openresult.v2.randomball.LotteryP33dResult\"}",
+                        "resultIntfId": 801,
+                        "status": "0",
+                        "lotteryId": 56
+                    }, {
+                        "controlConfig": "{\"esConfig\": {\"prizeRate\": 0.9, \"floatPrizeRate\": 0.02}, \"configClass\": \"com.alpha.lot.task.modules.openresult.v2.randomball.LotteryP33dResult\"}",
+                        "resultIntfId": 801,
+                        "status": "0",
+                        "lotteryId": 57
+                    }, {
+                        "controlConfig": "{\"esConfig\": {\"prizeRate\": 0.9, \"floatPrizeRate\": 0.02}, \"configClass\": \"com.alpha.lot.task.modules.openresult.v2.randomball.LotteryP33dResult\"}",
+                        "resultIntfId": 801,
+                        "status": "0",
+                        "lotteryId": 58
+                    }, {
+                        "controlConfig": "{\"esConfig\": {\"prizeRate\": 0.9, \"floatPrizeRate\": 0.02}, \"configClass\": \"com.alpha.lot.task.modules.openresult.v2.randomball.LotteryP33dResult\"}",
+                        "resultIntfId": 801,
+                        "status": "0",
+                        "lotteryId": 59
+                    }, {
+                        "controlConfig": "{\"esConfig\": {\"prizeRate\": 0.9, \"floatPrizeRate\": 0.02}, \"configClass\": \"com.alpha.lot.task.modules.openresult.v2.randomball.LotteryPk10Result\"}",
+                        "resultIntfId": 801,
+                        "status": "1",
+                        "lotteryId": 60
+                    }, {
+                        "controlConfig": "{\"esConfig\": {\"prizeRate\": 0.9, \"floatPrizeRate\": 0.02}, \"configClass\": \"com.alpha.lot.task.modules.openresult.v2.randomball.LotterySscResult\"}",
+                        "resultIntfId": 801,
+                        "status": "1",
+                        "lotteryId": 61
+                    }, {
+                        "controlConfig": "{\"esConfig\": {\"prizeRate\": 0.9, \"floatPrizeRate\": 0.02}, \"configClass\": \"com.alpha.lot.task.modules.openresult.v2.randomball.LotteryTxffcResult\"}",
+                        "resultIntfId": 801,
+                        "status": "0",
+                        "lotteryId": 62
+                    }, {
+                        "controlConfig": "{\"esConfig\": {\"prizeRate\": 0.9, \"floatPrizeRate\": 0.02}, \"configClass\": \"com.alpha.lot.task.modules.openresult.v2.randomball.LotterySscResult\"}",
+                        "resultIntfId": 801,
+                        "status": "1",
+                        "lotteryId": 63
+                    }, {
+                        "controlConfig": "{\"esConfig\": {\"prizeRate\": 0.9, \"floatPrizeRate\": 0.02}, \"configClass\": \"com.alpha.lot.task.modules.openresult.v2.randomball.LotterySscResult\"}",
+                        "resultIntfId": 801,
+                        "status": "1",
+                        "lotteryId": 64
+                    }, {
+                        "controlConfig": "{\"esConfig\": {\"prizeRate\": 0.9, \"floatPrizeRate\": 0.02}, \"configClass\": \"com.alpha.lot.task.modules.openresult.v2.randomball.LotterySscResult\"}",
+                        "resultIntfId": 801,
+                        "status": "1",
+                        "lotteryId": 65
+                    }, {
+                        "controlConfig": "{\"esConfig\": {\"prizeRate\": 0.9, \"floatPrizeRate\": 0.02}, \"configClass\": \"com.alpha.lot.task.modules.openresult.v2.randomball.LotteryK3Result\"}",
+                        "resultIntfId": 801,
+                        "status": "1",
+                        "lotteryId": 66
+                    }, {
+                        "controlConfig": "{\"esConfig\": {\"prizeRate\": 0.9, \"floatPrizeRate\": 0.02}, \"configClass\": \"com.alpha.lot.task.modules.openresult.v2.randomball.LotteryPk10Result\"}",
+                        "resultIntfId": 801,
+                        "status": "1",
+                        "lotteryId": 67
+                    }, {
+                        "controlConfig": "{\"esConfig\": {\"prizeRate\": 0.9, \"floatPrizeRate\": 0.02}, \"configClass\": \"com.alpha.lot.task.modules.openresult.v2.randomball.LotteryWan28Result\"}",
+                        "resultIntfId": 801,
+                        "status": "1",
+                        "lotteryId": 68
+                    }, {
+                        "controlConfig": "{\"esConfig\": {\"prizeRate\": 0.9, \"floatPrizeRate\": 0.02}, \"configClass\": \"com.alpha.lot.task.modules.openresult.v2.randomball.Lottery11X5Result\"}",
+                        "resultIntfId": 801,
+                        "status": "1",
+                        "lotteryId": 69
+                    }, {
+                        "controlConfig": "{\"esConfig\": {\"prizeRate\": 0.9, \"floatPrizeRate\": 0.02}, \"configClass\": \"com.alpha.lot.task.modules.openresult.v2.randomball.Lottery11X5Result\"}",
+                        "resultIntfId": 801,
+                        "status": "1",
+                        "lotteryId": 70
+                    }, {
+                        "controlConfig": "{\"esConfig\": {\"prizeRate\": 0.9, \"floatPrizeRate\": 0.02}, \"configClass\": \"com.alpha.lot.task.modules.openresult.v2.randomball.LotteryK3Result\"}",
+                        "resultIntfId": 801,
+                        "status": "1",
+                        "lotteryId": 72
+                    }, {
+                        "controlConfig": "{\"esConfig\": {\"prizeRate\": 0.9, \"floatPrizeRate\": 0.02}, \"configClass\": \"com.alpha.lot.task.modules.openresult.v2.randomball.LotteryK3Result\"}",
+                        "resultIntfId": 801,
+                        "status": "1",
+                        "lotteryId": 73
+                    }, {
+                        "controlConfig": "{\"esConfig\": {\"prizeRate\": 0.9, \"floatPrizeRate\": 0.02}, \"configClass\": \"com.alpha.lot.task.modules.openresult.v2.randomball.LotteryK3Result\"}",
+                        "resultIntfId": 801,
+                        "status": "1",
+                        "lotteryId": 74
+                    }, {
+                        "controlConfig": "{\"esConfig\": {\"prizeRate\": 0.9, \"floatPrizeRate\": 0.02}, \"configClass\": \"com.alpha.lot.task.modules.openresult.v2.randomball.LotteryK3Result\"}",
+                        "resultIntfId": 801,
+                        "status": "1",
+                        "lotteryId": 75
+                    }, {
+                        "controlConfig": "{\"esConfig\": {\"prizeRate\": 0.9, \"floatPrizeRate\": 0.02}, \"configClass\": \"com.alpha.lot.task.modules.openresult.v2.randomball.LotteryK3Result\"}",
+                        "resultIntfId": 801,
+                        "status": "1",
+                        "lotteryId": 76
+                    }, {
+                        "controlConfig": "{\"esConfig\": {\"prizeRate\": 0.9, \"floatPrizeRate\": 0.02}, \"configClass\": \"com.alpha.lot.task.modules.openresult.v2.randomball.LotteryK3Result\"}",
+                        "resultIntfId": 801,
+                        "status": "1",
+                        "lotteryId": 77
+                    }, {
+                        "controlConfig": "{\"esConfig\": {\"prizeRate\": 0.9, \"floatPrizeRate\": 0.02}, \"configClass\": \"com.alpha.lot.task.modules.openresult.v2.randomball.LotteryK3Result\"}",
+                        "resultIntfId": 801,
+                        "status": "1",
+                        "lotteryId": 78
+                    }, {
+                        "controlConfig": "{\"esConfig\": {\"prizeRate\": 0.9, \"floatPrizeRate\": 0.02}, \"configClass\": \"com.alpha.lot.task.modules.openresult.v2.randomball.LotteryK3Result\"}",
+                        "resultIntfId": 801,
+                        "status": "1",
+                        "lotteryId": 79
+                    }, {
+                        "controlConfig": "{\"esConfig\": {\"prizeRate\": 0.9, \"floatPrizeRate\": 0.02}, \"configClass\": \"com.alpha.lot.task.modules.openresult.v2.randomball.LotteryK3Result\"}",
+                        "resultIntfId": 801,
+                        "status": "1",
+                        "lotteryId": 80
+                    }, {
+                        "controlConfig": "{\"esConfig\": {\"prizeRate\": 0.9, \"floatPrizeRate\": 0.02}, \"configClass\": \"com.alpha.lot.task.modules.openresult.v2.randomball.LotteryK3Result\"}",
+                        "resultIntfId": 801,
+                        "status": "0",
+                        "lotteryId": 81
+                    }, {
+                        "controlConfig": "{\"esConfig\": {\"prizeRate\": 0.9, \"floatPrizeRate\": 0.02}, \"configClass\": \"com.alpha.lot.task.modules.openresult.v2.randomball.LotteryK3Result\"}",
+                        "resultIntfId": 801,
+                        "status": "0",
+                        "lotteryId": 82
+                    }, {
+                        "controlConfig": "{\"norMinRate\":1.0,\"oneBetThr\":200000.0,\"speMinRate\":1.0,\"specialPlayIds\":\"\",\"totalBetThr\":2000000.0}",
+                        "resultIntfId": 7,
+                        "status": "1",
+                        "lotteryId": 46
+                    }, {
+                        "controlConfig": "{\"norMinRate\":10.0,\"oneBetThr\":200000.0,\"revMaxRate\":8.0,\"revMinRate\":0.0,\"revSpeMaxRate\":0.0,\"revSpeMinRate\":0.0,\"revSpecialPlayIds\":\"\",\"reverseFlag\":false,\"speMinRate\":0.0,\"specialPlayIds\":\"\",\"totalBetThr\":200000.0}",
+                        "resultIntfId": 72,
+                        "status": "0",
+                        "lotteryId": 46
+                    }, {
+                        "controlConfig": "{\"norMinRate\":2.0,\"oneBetThr\":200000.0,\"revMaxRate\":8.0,\"revMinRate\":0.0,\"revSpeMaxRate\":0.0,\"revSpeMinRate\":0.0,\"revSpecialPlayIds\":\"\",\"reverseFlag\":false,\"speMinRate\":5.0,\"specialPlayIds\":\"5040101,5040102,5040103\",\"totalBetThr\":200000.0}",
+                        "resultIntfId": 11,
+                        "status": "1",
+                        "lotteryId": 60
+                    }, {
+                        "controlConfig": "{\"oneBetThr\": 200000, \"norMinRate\": 1, \"speMinRate\": 1, \"totalBetThr\": 2000000, \"specialPlayIds\": \"\"}",
+                        "resultIntfId": 4,
+                        "status": "0",
+                        "lotteryId": 60
+                    }, {
+                        "controlConfig": "{\"norMinRate\":1.0,\"oneBetThr\":200000.0,\"speMinRate\":1.0,\"specialPlayIds\":\"\",\"totalBetThr\":2000000.0}",
+                        "resultIntfId": 5,
+                        "status": "1",
+                        "lotteryId": 61
+                    }, {
+                        "controlConfig": "{\"norMinRate\":10.0,\"oneBetThr\":200000.0,\"revMaxRate\":8.0,\"revMinRate\":0.0,\"revSpeMaxRate\":0.0,\"revSpeMinRate\":0.0,\"revSpecialPlayIds\":\"\",\"reverseFlag\":false,\"speMinRate\":10.0,\"specialPlayIds\":\"4040201,4050201,4060201,4100203,4040202,4050202,4060202,4100204,4080101\",\"totalBetThr\":200000.0}",
+                        "resultIntfId": 10,
+                        "status": "0",
+                        "lotteryId": 61
+                    }, {
+                        "controlConfig": "{\"norMinRate\":1.0,\"oneBetThr\":200000.0,\"speMinRate\":1.0,\"specialPlayIds\":\"\",\"totalBetThr\":2000000.0}",
+                        "resultIntfId": 1101,
+                        "status": "1",
+                        "lotteryId": 85
+                    }, {
+                        "controlConfig": "{\"norMinRate\":2.0,\"oneBetThr\":200000.0,\"revMaxRate\":8.0,\"revMinRate\":0.0,\"revSpeMaxRate\":0.0,\"revSpeMinRate\":0.0,\"revSpecialPlayIds\":\"\",\"reverseFlag\":false,\"speMinRate\":10.0,\"specialPlayIds\":\"12010101,12020101\",\"totalBetThr\":200000.0}",
+                        "resultIntfId": 1102,
+                        "status": "0",
+                        "lotteryId": 85
+                    }, {
+                        "controlConfig": "{\"norMinRate\":1.0,\"oneBetThr\":1000.0,\"speMinRate\":1.0,\"specialPlayIds\":\"\",\"totalBetThr\":2000000.0}",
+                        "resultIntfId": 1101,
+                        "status": "1",
+                        "lotteryId": 86
+                    }, {
+                        "controlConfig": "{\"norMinRate\":2.0,\"oneBetThr\":200000.0,\"revMaxRate\":8.0,\"revMinRate\":0.0,\"revSpeMaxRate\":0.0,\"revSpeMinRate\":0.0,\"revSpecialPlayIds\":\"\",\"reverseFlag\":false,\"speMinRate\":10.0,\"specialPlayIds\":\"12010101,12020101\",\"totalBetThr\":200000.0}",
+                        "resultIntfId": 1102,
+                        "status": "0",
+                        "lotteryId": 86
+                    }, {
+                        "controlConfig": "{\"norMinRate\":1.0,\"oneBetThr\":1000.0,\"speMinRate\":1.0,\"specialPlayIds\":\"\",\"totalBetThr\":2000000.0}",
+                        "resultIntfId": 1101,
+                        "status": "1",
+                        "lotteryId": 87
+                    }, {
+                        "controlConfig": "{\"norMinRate\":2.0,\"oneBetThr\":200000.0,\"revMaxRate\":8.0,\"revMinRate\":0.0,\"revSpeMaxRate\":0.0,\"revSpeMinRate\":0.0,\"revSpecialPlayIds\":\"\",\"reverseFlag\":false,\"speMinRate\":10.0,\"specialPlayIds\":\"12010101,12020101\",\"totalBetThr\":200000.0}",
+                        "resultIntfId": 1102,
+                        "status": "0",
+                        "lotteryId": 87
+                    }, {
+                        "controlConfig": "{\"norMinRate\":1.0,\"oneBetThr\":200000.0,\"speMinRate\":1.0,\"specialPlayIds\":\"\",\"totalBetThr\":2000000.0}",
+                        "resultIntfId": 8,
+                        "status": "1",
+                        "lotteryId": 55
+                    }, {
+                        "controlConfig": "{\"norMinRate\":10.0,\"oneBetThr\":200000.0,\"revMaxRate\":8.0,\"revMinRate\":0.0,\"revSpeMaxRate\":0.0,\"revSpeMinRate\":0.0,\"revSpecialPlayIds\":\"\",\"reverseFlag\":false,\"speMinRate\":10.0,\"specialPlayIds\":\"2060102\",\"totalBetThr\":200000.0}",
+                        "resultIntfId": 9,
+                        "status": "0",
+                        "lotteryId": 55
+                    }, {
+                        "controlConfig": "{\"prizeRate\": 0.8, \"filterPlay\": \"\", \"acceptMaxPrize\": 3000}",
+                        "resultIntfId": 13,
+                        "status": "0",
+                        "lotteryId": 55
+                    }, {
+                        "controlConfig": "{\"norMinRate\":1.0,\"oneBetThr\":200000.0,\"speMinRate\":1.0,\"specialPlayIds\":\"\",\"totalBetThr\":2000000.0}",
+                        "resultIntfId": 8,
+                        "status": "1",
+                        "lotteryId": 51
+                    }, {
+                        "controlConfig": "{\"norMinRate\":10.0,\"oneBetThr\":200000.0,\"revMaxRate\":8.0,\"revMinRate\":0.0,\"revSpeMaxRate\":0.0,\"revSpeMinRate\":0.0,\"revSpecialPlayIds\":\"\",\"reverseFlag\":false,\"speMinRate\":10.0,\"specialPlayIds\":\"2060102\",\"totalBetThr\":200000.0}",
+                        "resultIntfId": 9,
+                        "status": "0",
+                        "lotteryId": 51
+                    }, {
+                        "controlConfig": "{\"prizeRate\": 0.8, \"filterPlay\": \"\", \"acceptMaxPrize\": 3000}",
+                        "resultIntfId": 13,
+                        "status": "0",
+                        "lotteryId": 51
+                    }, {
+                        "controlConfig": "{\"oneBetThr\": 200000, \"norMinRate\": 1, \"speMinRate\": 1, \"totalBetThr\": 2000000, \"specialPlayIds\": \"\"}",
+                        "resultIntfId": 4,
+                        "status": "1",
+                        "lotteryId": 88
+                    }, {
+                        "controlConfig": "{\"norMinRate\":2.0,\"oneBetThr\":200000.0,\"revMaxRate\":8.0,\"revMinRate\":0.0,\"revSpeMaxRate\":0.0,\"revSpeMinRate\":0.0,\"revSpecialPlayIds\":\"\",\"reverseFlag\":false,\"speMinRate\":5.0,\"specialPlayIds\":\"5040101,5040102,5040103\",\"totalBetThr\":200000.0}",
+                        "resultIntfId": 11,
+                        "status": "0",
+                        "lotteryId": 88
+                    }, {
+                        "controlConfig": "{\"esConfig\": {\"prizeRate\": 0.9, \"floatPrizeRate\": 0.02}, \"configClass\": \"com.alpha.lot.task.modules.openresult.v2.randomball.LotteryPk10Result\"}",
+                        "resultIntfId": 801,
+                        "status": "0",
+                        "lotteryId": 88
+                    }, {
+                        "controlConfig": "{\"norMinRate\":1.0,\"oneBetThr\":200000.0,\"speMinRate\":1.0,\"specialPlayIds\":\"\",\"totalBetThr\":2000000.0}",
+                        "resultIntfId": 7,
+                        "status": "1",
+                        "lotteryId": 49
+                    }, {
+                        "controlConfig": "{\"norMinRate\":3.0,\"oneBetThr\":200000.0,\"revMaxRate\":8.0,\"revMinRate\":0.0,\"revSpeMaxRate\":0.0,\"revSpeMinRate\":0.0,\"revSpecialPlayIds\":\"\",\"reverseFlag\":false,\"speMinRate\":0.0,\"specialPlayIds\":\"\",\"totalBetThr\":200000.0}",
+                        "resultIntfId": 72,
+                        "status": "0",
+                        "lotteryId": 49
+                    }, {
+                        "controlConfig": "{\"norMinRate\":1.0,\"oneBetThr\":200000.0,\"speMinRate\":1.0,\"specialPlayIds\":\"\",\"totalBetThr\":2000000.0}",
+                        "resultIntfId": 8,
+                        "status": "1",
+                        "lotteryId": 50
+                    }, {
+                        "controlConfig": "{\"norMinRate\":10.0,\"oneBetThr\":200000.0,\"revMaxRate\":8.0,\"revMinRate\":0.0,\"revSpeMaxRate\":0.0,\"revSpeMinRate\":0.0,\"revSpecialPlayIds\":\"\",\"reverseFlag\":false,\"speMinRate\":10.0,\"specialPlayIds\":\"2060102\",\"totalBetThr\":200000.0}",
+                        "resultIntfId": 9,
+                        "status": "0",
+                        "lotteryId": 50
+                    }, {
+                        "controlConfig": "{\"acceptMaxPrize\":3000.0,\"filterPlay\":\"\",\"prizeRate\":0.8}",
+                        "resultIntfId": 13,
+                        "status": "0",
+                        "lotteryId": 50
+                    }, {
+                        "controlConfig": "{\"oneBetThr\": 200000, \"norMinRate\": 1, \"speMinRate\": 1, \"totalBetThr\": 2000000, \"specialPlayIds\": \"\"}",
+                        "resultIntfId": 4,
+                        "status": "1",
+                        "lotteryId": 52
+                    }, {
+                        "controlConfig": "{\"norMinRate\":2.0,\"oneBetThr\":200000.0,\"revMaxRate\":8.0,\"revMinRate\":0.0,\"revSpeMaxRate\":0.0,\"revSpeMinRate\":0.0,\"revSpecialPlayIds\":\"\",\"reverseFlag\":false,\"speMinRate\":5.0,\"specialPlayIds\":\"5040101,5040102,5040103\",\"totalBetThr\":200000.0}",
+                        "resultIntfId": 11,
+                        "status": "0",
+                        "lotteryId": 52
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 888,
+                        "status": "0",
+                        "lotteryId": 11
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 888,
+                        "status": "0",
+                        "lotteryId": 12
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 888,
+                        "status": "0",
+                        "lotteryId": 19
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 888,
+                        "status": "0",
+                        "lotteryId": 20
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 888,
+                        "status": "0",
+                        "lotteryId": 21
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 888,
+                        "status": "0",
+                        "lotteryId": 22
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 888,
+                        "status": "0",
+                        "lotteryId": 23
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 888,
+                        "status": "0",
+                        "lotteryId": 24
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 888,
+                        "status": "0",
+                        "lotteryId": 40
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 888,
+                        "status": "0",
+                        "lotteryId": 41
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 888,
+                        "status": "0",
+                        "lotteryId": 42
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 888,
+                        "status": "0",
+                        "lotteryId": 43
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 888,
+                        "status": "0",
+                        "lotteryId": 46
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 888,
+                        "status": "0",
+                        "lotteryId": 47
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 888,
+                        "status": "0",
+                        "lotteryId": 48
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 888,
+                        "status": "0",
+                        "lotteryId": 49
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 888,
+                        "status": "0",
+                        "lotteryId": 50
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 888,
+                        "status": "0",
+                        "lotteryId": 52
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 888,
+                        "status": "0",
+                        "lotteryId": 56
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 888,
+                        "status": "0",
+                        "lotteryId": 57
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 888,
+                        "status": "0",
+                        "lotteryId": 58
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 888,
+                        "status": "0",
+                        "lotteryId": 59
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 888,
+                        "status": "0",
+                        "lotteryId": 60
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 888,
+                        "status": "0",
+                        "lotteryId": 61
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 888,
+                        "status": "0",
+                        "lotteryId": 62
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 888,
+                        "status": "1",
+                        "lotteryId": 63
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 888,
+                        "status": "1",
+                        "lotteryId": 64
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 888,
+                        "status": "1",
+                        "lotteryId": 65
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 888,
+                        "status": "1",
+                        "lotteryId": 66
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 888,
+                        "status": "1",
+                        "lotteryId": 67
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 888,
+                        "status": "1",
+                        "lotteryId": 68
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 888,
+                        "status": "1",
+                        "lotteryId": 69
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 888,
+                        "status": "1",
+                        "lotteryId": 70
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 888,
+                        "status": "1",
+                        "lotteryId": 72
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 888,
+                        "status": "1",
+                        "lotteryId": 73
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 888,
+                        "status": "1",
+                        "lotteryId": 74
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 888,
+                        "status": "1",
+                        "lotteryId": 75
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 888,
+                        "status": "1",
+                        "lotteryId": 76
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 888,
+                        "status": "1",
+                        "lotteryId": 77
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 888,
+                        "status": "1",
+                        "lotteryId": 78
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 888,
+                        "status": "1",
+                        "lotteryId": 79
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 888,
+                        "status": "1",
+                        "lotteryId": 80
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 888,
+                        "status": "0",
+                        "lotteryId": 81
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 888,
+                        "status": "0",
+                        "lotteryId": 82
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 888,
+                        "status": "0",
+                        "lotteryId": 88
+                    }, {
+                        "controlConfig": null,
+                        "resultIntfId": 1,
+                        "status": "1",
+                        "lotteryId": 53
+                    }, {"controlConfig": null, "resultIntfId": 1, "status": "1", "lotteryId": 54}]
+                };
+                listResponse.intfs.forEach((intf) => {
+                    if (intf.intfControlType) {
+                        if (!this.intfMap[intf.intfControlType]) {
+                            this.intfMap[intf.intfControlType] = [];
+                        }
+                        this.intfMap[intf.intfControlType].push(intf);
+                    }
+                });
+                listResponse.relas.forEach((rela) => {
+                    if (!this.intfRelaMap[rela.resultIntfId]) {
+                        this.intfRelaMap[rela.resultIntfId] = [];
+                    }
+                    this.intfRelaMap[rela.resultIntfId].push(rela);
+
+                    if (!this.lotteryRelaMap[rela.lotteryId]) {
+                        this.lotteryRelaMap[rela.lotteryId] = [];
+                    }
+                    this.lotteryRelaMap[rela.lotteryId].push(rela);
+                });
+                listResponse.lotteries.forEach((lottery) => {
+                    this.lotteryMap[lottery.lotteryId] = lottery;
+                });
+
+                this.getLotteryActivedDescript();
+            },
+        }, watch: {
+            filterText(val) {
+                this.$refs.descript.filter(val);
+            }
+        }, mounted: function () {
+            this.generateData();
+            this.transfer('5');
+        }
+    })
+</script>
+</html>
