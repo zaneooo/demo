@@ -249,11 +249,11 @@
                         </el-tag>配置</span>
                     </div>
 
-                    <span v-if="this.transferType==5">总支出限制<br/>
+                    <span v-if="this.transferType=='5'">总支出限制<br/>
                     最低:总投注金额的<input class="form_input" style="width: 25px" v-model="config.min">倍<br/>
                     最高:总投注金额的<input class="form_input" style="width: 40px" v-model="config.max">倍<br/>
                     最大亏损金额<input class="form_input" style="width: 80px" v-model="config.costMax"><br></span>
-                    <span v-if="this.transferType==2">
+                    <span v-if="this.transferType=='2'">
                         <span v-if="!this.config.reverseFlag">
                         特殊玩法<input class="form_input" style="width: 160px" v-model="config.specialPlayIds"><br/>
                         特殊玩法比率<input class="form_input" style="width: 25px" v-model="config.speMinRate"><br/>
@@ -271,7 +271,7 @@
                         特殊玩法最大比率<input class="form_input" style="width: 25px" v-model="config.revSpeMaxRate"><br/>
                         </span>
                     </span>
-                    <span v-if="this.transferType==1">
+                    <span v-if="this.transferType=='1'">
                         总投注阈值<input class="form_input" style="width: 80px" v-model="config.totalBetThr"><br/>
                         单注投注阈值<input class="form_input" style="width: 80px" v-model="config.oneBetThr"><br/>
                         特殊玩法<input class="form_input" style="width: 160px" v-model="config.specialPlayIds"><br/>
@@ -282,7 +282,7 @@
                 </div>
             </div>
             <!--批量定时配置-->
-            <div v-if="edits && edits.length>0 && this.transferType!=1" style="margin-left: 5px;width: 340px;flex-shrink:0;">
+            <div v-if="edits && edits.length>0 && this.transferType!='1'" style="margin-left: 5px;width: 340px;flex-shrink:0;">
                 <div style="border: 1px solid #EBEEF5;border-radius: 4px;height: 100%;">
                     <div class="card__header">
                         <span v-if="edits.length>1">批量定时</span>
@@ -425,7 +425,7 @@
             };
         }, methods: {
             transfer(type,selectedId) {
-
+                type=''+type;
                 this.generateData();
                 this.transferToSelected = [];
                 this.transferToKey = [];
